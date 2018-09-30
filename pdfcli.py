@@ -18,6 +18,9 @@ def cli():
 def merge(files, out):
     '''
     Merge a set of PDF files together
+
+    For example if you want to merge example1.pdf example2.pdf and example3.pdf in that order,
+    then you would write: pdfcli merge example1.pdf example2.pdf example3.pdf
     '''
     for filename in files:
         click.echo(filename)
@@ -48,6 +51,8 @@ def reorder(file, order, reverse, out):
     '''
     if not reverse and not out:
         raise click.UsageError("Either the reverse or out switch must be set when using reorder.")
+
+
 
 
 if __name__ == '__main__':
