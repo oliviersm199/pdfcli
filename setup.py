@@ -17,7 +17,7 @@ URL = 'https://github.com/oliviersm199/pdfcli'
 EMAIL = 'olivier.morissette@gmail.com'
 AUTHOR = 'Olivier Simard-Morissette'
 REQUIRES_PYTHON = '>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*'
-VERSION = '0.0.1'
+VERSION = '0.0.2'
 LICENSE = 'MIT'
 
 # What packages are required for this module to be executed?
