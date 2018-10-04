@@ -22,8 +22,7 @@ def merge(files, out):
     For example if you want to merge example1.pdf example2.pdf and example3.pdf in that order,
     then you would write: pdfcli merge example1.pdf example2.pdf example3.pdf
     '''
-    _merge(*files,
-           out=out)
+    _merge(*files, out=out)
 
 
 @cli.command()
@@ -57,10 +56,7 @@ def reorder(file, order, reverse, out):
         except ValueError as e:
             raise click.BadParameter("order must be a list of integers representing indexes in PDF.")
 
-    _reorder(file=file,
-             order=order,
-             reverse=reverse,
-             out=out)
+    _reorder(file=file, order=order, reverse=reverse, out=out)
 
 
 @cli.command()
@@ -86,9 +82,7 @@ def delete(file, delete_indexes, out):
     else:
         raise click.BadParameter("must specify indexes to delete.")
 
-    _delete(file=file,
-            out=out,
-            delete=delete_indexes)
+    _delete(file=file, out=out, delete=delete_indexes)
 
 
 @cli.command()
@@ -151,9 +145,13 @@ def _reorder(*args, **kwargs):
             order = [i for i in range(num_pages - 1, -1, -1)]
 
         for index in order:
-            pdf_writer.addPage(pdf_reader.getPage(index))
+            try:
+                pdf_writer.addPage(pdf_reader.getPage(index))
+            except PyPDF2.utils.PdfReadError as e:
+                raise click.BadParameter("PDF File could not be recognized %s." % (file_arg))
 
         pdf_writer.write(pdf_fp_w)
+        click.echo("Reordered pages in ")
 
 
 def _delete(*args, **kwargs):
@@ -173,9 +171,13 @@ def _delete(*args, **kwargs):
             pdf_writer = PyPDF2.PdfFileWriter()
             for i in range(num_pages):
                 if i not in delete_pages:
-                    pdf_writer.addPage(pdf_reader.getPage(i))
+                    try:
+                        pdf_writer.addPage(pdf_reader.getPage(i))
+                    except PyPDF2.utils.PdfReadError as e:
+                        raise click.BadParameter("PDF File could not be recognized %s." % (file_arg))
 
             pdf_writer.write(pdf_writer_fp)
+            click.echo("Deleted pages %s from %s and created new PDF at %s"%(delete_pages, file_arg, out))
 
 
 def _split(*args, **kwargs):
@@ -184,10 +186,8 @@ def _split(*args, **kwargs):
     out_first = kwargs['out_first']
     out_second = kwargs['out_second']
 
-
-    with open(file_arg, 'rb') as pdf_reader_fp, \
-         open(out_first, 'wb') as pdf_fp_one, \
-         open(out_second, 'wb') as pdf_fp_two:
+    with open(file_arg, 'rb') as pdf_reader_fp, open(out_first, 'wb') as pdf_fp_one, \
+            open(out_second, 'wb') as pdf_fp_two:
 
         pdf_reader = PyPDF2.PdfFileReader(pdf_reader_fp)
         pdf_writer_one = PyPDF2.PdfFileWriter()
@@ -199,13 +199,17 @@ def _split(*args, **kwargs):
             raise click.BadParameter('The split index must be less than the number of pages')
 
         for i in range(num_pages):
-            if i < split_index:
-                pdf_writer_one.addPage(pdf_reader.getPage(i))
-            else:
-                pdf_writer_two.addPage(pdf_reader.getPage(i))
+            try:
+                if i < split_index:
+                    pdf_writer_one.addPage(pdf_reader.getPage(i))
+                else:
+                    pdf_writer_two.addPage(pdf_reader.getPage(i))
+            except PyPDF2.utils.PdfReadError as e:
+                raise click.BadParameter("PDF File could not be recognized %s." % (file_arg))
 
             pdf_writer_one.write(pdf_fp_one)
             pdf_writer_two.write(pdf_fp_two)
+        click.echo("Split %s at index %s into %s and %s" % (file_arg, split_index, out_first, out_second))
 
 
 if __name__ == '__main__':
