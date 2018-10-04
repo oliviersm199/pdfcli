@@ -105,3 +105,9 @@ venv.bak/
 
 .idea/*
 .idea/g
+
+
+# CUSTOM GIT IGNORE
+
+coverage_html
+coverage_html/*

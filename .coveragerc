@@ -1,0 +1,7 @@
+# .coveragerc to control coverage.py
+[run]
+branch = True
+include = pdfcli.py
+
+[html]
+directory = coverage_html_report

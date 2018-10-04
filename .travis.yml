@@ -9,7 +9,8 @@ python:
   - "3.7-dev"
 
 install:
-  - pip install -r requirements.txt
+  - pip install pipenv
+  - pipenv install --dev
 
 script:
   - python tests.py
