@@ -117,6 +117,11 @@ class TestReorder(BasePDFCLITestCase):
         result = self.runner.invoke(cli, ['reorder', 'test_files/MultiPagePDF.pdf', '--out',
                                           'test_files/out.pdf', '--order', ''])
 
+    def test_reorder_bad_file(self):
+        result = self.runner.invoke(cli, ['reorder', 'test_files/test.txt', '--out',
+                                          'test_files/out.pdf', '--order','1,0,2'])
+        self.assertEqual(result.exit_code, 2)
+
 
 class TestDelete(BasePDFCLITestCase):
     def test_delete_valid_input(self):
@@ -148,6 +153,14 @@ class TestDelete(BasePDFCLITestCase):
             pdf = PyPDF2.PdfFileReader(file_reader)
             self.assertEqual(pdf.getNumPages(), 1)
 
+    def test_delete_invalid_file(self):
+        result = self.runner.invoke(cli, ['delete', 'test_files/test.txt', '0,0,0,1', '--out', 'test_files/out.pdf'])
+        self.assertEqual(result.exit_code, 2)
+
+    def test_delete_invalid_indexes(self):
+        result = self.runner.invoke(cli, ['delete', 'test_files/MultiPagePDF.pdf', 'asdfasd,asdfasf', '--out', 'test_files/out.pdf'])
+        self.assertEqual(result.exit_code, 2)
+
 
 class TestSplit(BasePDFCLITestCase):
     def test_split_correct_input(self):
@@ -169,6 +182,12 @@ class TestSplit(BasePDFCLITestCase):
     def test_split_not_in_range_integer(self):
         result = self.runner.invoke(cli, ['split', 'test_files/MultiPagePDF.pdf', '10'])
         self.assertEqual(result.exit_code, 2)
+
+    def test_split_bad_file(self):
+        result = self.runner.invoke(cli, ['split', 'test_files/test.txt', '3'])
+        self.assertEqual(result.exit_code, 2)
+
+
 
 
 
