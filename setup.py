@@ -85,6 +85,7 @@ setup(
     url=URL,
 	description=DESCRIPTION,
     long_description=long_description,
+    long_description_content_type='text/markdown',
     python_requires=REQUIRES_PYTHON,
     entry_points='''
         [console_scripts]

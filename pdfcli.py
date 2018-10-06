@@ -121,6 +121,7 @@ def _merge(*files, **kwargs):
                 raise click.BadParameter("PDF File could not be recognized %s." % (file))
 
     merger.write(kwargs['out'])
+    click.echo("Merged files %s into %s"%(files, kwargs['out']))
 
 
 def _reorder(*args, **kwargs):
@@ -131,7 +132,11 @@ def _reorder(*args, **kwargs):
 
 
     with open(file_arg, 'rb') as pdf_fp, open(out, 'wb') as pdf_fp_w:
-        pdf_reader = PyPDF2.PdfFileReader(pdf_fp)
+        try:
+            pdf_reader = PyPDF2.PdfFileReader(pdf_fp)
+        except PyPDF2.utils.PdfReadError as e:
+            raise click.BadParameter("PDF File could not be recognized %s." % (file_arg))
+
         pdf_writer = PyPDF2.PdfFileWriter()
         num_pages = pdf_reader.getNumPages()
 
@@ -145,13 +150,11 @@ def _reorder(*args, **kwargs):
             order = [i for i in range(num_pages - 1, -1, -1)]
 
         for index in order:
-            try:
-                pdf_writer.addPage(pdf_reader.getPage(index))
-            except PyPDF2.utils.PdfReadError as e:
-                raise click.BadParameter("PDF File could not be recognized %s." % (file_arg))
+            pdf_writer.addPage(pdf_reader.getPage(index))
+
 
         pdf_writer.write(pdf_fp_w)
-        click.echo("Reordered pages in ")
+        click.echo("Reordered pages in %s and rewrote file to %s"%(file_arg, out))
 
 
 def _delete(*args, **kwargs):
@@ -160,8 +163,11 @@ def _delete(*args, **kwargs):
     out = kwargs['out']
 
     with open(file_arg, 'rb') as pdf_reader_fp:
-        pdf_reader = PyPDF2.PdfFileReader(pdf_reader_fp)
-        num_pages = pdf_reader.getNumPages()
+        try:
+            pdf_reader = PyPDF2.PdfFileReader(pdf_reader_fp)
+            num_pages = pdf_reader.getNumPages()
+        except PyPDF2.utils.PdfReadError as e:
+            raise click.BadParameter("PDF File could not be recognized %s." % (file_arg))
 
         for page in delete_pages:
             if page > num_pages - 1:
@@ -171,10 +177,8 @@ def _delete(*args, **kwargs):
             pdf_writer = PyPDF2.PdfFileWriter()
             for i in range(num_pages):
                 if i not in delete_pages:
-                    try:
-                        pdf_writer.addPage(pdf_reader.getPage(i))
-                    except PyPDF2.utils.PdfReadError as e:
-                        raise click.BadParameter("PDF File could not be recognized %s." % (file_arg))
+                    pdf_writer.addPage(pdf_reader.getPage(i))
+
 
             pdf_writer.write(pdf_writer_fp)
             click.echo("Deleted pages %s from %s and created new PDF at %s"%(delete_pages, file_arg, out))
@@ -189,7 +193,11 @@ def _split(*args, **kwargs):
     with open(file_arg, 'rb') as pdf_reader_fp, open(out_first, 'wb') as pdf_fp_one, \
             open(out_second, 'wb') as pdf_fp_two:
 
-        pdf_reader = PyPDF2.PdfFileReader(pdf_reader_fp)
+        try:
+            pdf_reader = PyPDF2.PdfFileReader(pdf_reader_fp)
+        except PyPDF2.utils.PdfReadError as e:
+            raise click.BadParameter("PDF File could not be recognized %s." % (file_arg))
+
         pdf_writer_one = PyPDF2.PdfFileWriter()
         pdf_writer_two = PyPDF2.PdfFileWriter()
 
@@ -199,16 +207,13 @@ def _split(*args, **kwargs):
             raise click.BadParameter('The split index must be less than the number of pages')
 
         for i in range(num_pages):
-            try:
-                if i < split_index:
-                    pdf_writer_one.addPage(pdf_reader.getPage(i))
-                else:
-                    pdf_writer_two.addPage(pdf_reader.getPage(i))
-            except PyPDF2.utils.PdfReadError as e:
-                raise click.BadParameter("PDF File could not be recognized %s." % (file_arg))
-
+            if i < split_index:
+                pdf_writer_one.addPage(pdf_reader.getPage(i))
+            else:
+                pdf_writer_two.addPage(pdf_reader.getPage(i))
             pdf_writer_one.write(pdf_fp_one)
             pdf_writer_two.write(pdf_fp_two)
+
         click.echo("Split %s at index %s into %s and %s" % (file_arg, split_index, out_first, out_second))
 
 
