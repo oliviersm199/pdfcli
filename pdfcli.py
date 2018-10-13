@@ -17,10 +17,7 @@ def cli():
               help="The path of the output pdf. defaults to out.pdf")
 def merge(files, out):
     '''
-    Merge a set of PDF files together
-
-    For example if you want to merge example1.pdf example2.pdf and example3.pdf in that order,
-    then you would write: pdfcli merge example1.pdf example2.pdf example3.pdf
+    Merge a set of PDF files together.
     '''
     _merge(*files,
            out=out)
@@ -42,10 +39,7 @@ def merge(files, out):
 @click.option('--reverse/--no-reverse', default=False, help="Set to True to reverse the order of the PDFs")
 def reorder(file, order, reverse, out):
     '''
-    Change a PDF pages order
-
-    For example if you have three pages and you want to place the 2nd page first,
-    the first page last and the last page second then you would write:pdfcli reorder 2 3 1
+    Reorder the pages in a PDF.
     '''
     _reorder(file=file,
              order=order,
@@ -65,7 +59,7 @@ def reorder(file, order, reverse, out):
               help="The path of the output pdf. defaults to out.pdf")
 def delete(file, delete_indexes, out):
     '''
-    Delete pages in a PDF at a particular index
+    Delete pages in a PDF.
     '''
     if delete_indexes:
         try:
@@ -96,7 +90,7 @@ def delete(file, delete_indexes, out):
               type=click.Path(),
               help="The path of the output pdf. defaults to out2.pdf")
 def split(file, split_index, out_first, out_second):
-    '''Split a file at a particular index'''
+    '''Split a PDF file into two.'''
     _split(file=file,
            index=split_index,
            out_first=out_first,
@@ -115,6 +109,9 @@ def split(file, split_index, out_first, out_second):
               type=click.Path(),
               help="The path of the output pdf. defaults to out.pdf")
 def rotate(file, direction, out):
+    '''
+    Rotate a PDF file clockwise or counter-clockwise.
+    '''
     _rotate(file=file,
             direction=direction,
             out=out)
