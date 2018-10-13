@@ -199,6 +199,11 @@ class TestRotate(BasePDFCLITestCase):
         self.assertEqual(result.exit_code, 0)
         self.assertTrue(os.path.exists('out.pdf'))
 
+    def test_rotate_bad_file(self):
+        result = self.runner.invoke(cli, ['rotate', 'test_files.test.txt', 'clockwise'])
+        self.assertEqual(result.exit_code, 2)
+
+
 
 
 

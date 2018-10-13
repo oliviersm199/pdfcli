@@ -19,7 +19,7 @@ clean:
 	rmdir pdfcli.egg-info
 
 coverage:
-	coverage run tests.py
+	coverage run --branch tests.py
 
 coverage_report:
 	coverage report -m

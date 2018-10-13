@@ -111,3 +111,4 @@ venv.bak/
 
 coverage_html
 coverage_html/*
+out.pdf

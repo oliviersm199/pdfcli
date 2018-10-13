@@ -264,6 +264,5 @@ def _rotate(*args, **kwargs):
         click.echo("Pages were rotated %s successfully and saved at %s" % (direction, out))
 
 
-
 if __name__ == '__main__':
     cli()
