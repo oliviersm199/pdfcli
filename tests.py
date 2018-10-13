@@ -188,6 +188,19 @@ class TestSplit(BasePDFCLITestCase):
         self.assertEqual(result.exit_code, 2)
 
 
+class TestRotate(BasePDFCLITestCase):
+    def test_rotate_clockwise(self):
+        result = self.runner.invoke(cli, ['rotate', 'test_files/MultiPagePDF.pdf', 'clockwise'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertTrue(os.path.exists('out.pdf'))
+
+    def test_rotate_counter_clockwise(self):
+        result = self.runner.invoke(cli, ['rotate', 'test_files/MultiPagePDF.pdf', 'counter-clockwise'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertTrue(os.path.exists('out.pdf'))
+
+
+
 
 
 

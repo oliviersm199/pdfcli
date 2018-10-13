@@ -22,7 +22,8 @@ def merge(files, out):
     For example if you want to merge example1.pdf example2.pdf and example3.pdf in that order,
     then you would write: pdfcli merge example1.pdf example2.pdf example3.pdf
     '''
-    _merge(*files, out=out)
+    _merge(*files,
+           out=out)
 
 
 @cli.command()
@@ -46,17 +47,10 @@ def reorder(file, order, reverse, out):
     For example if you have three pages and you want to place the 2nd page first,
     the first page last and the last page second then you would write:pdfcli reorder 2 3 1
     '''
-    if not reverse and not order:
-        raise click.UsageError("Either the reverse or out switch must be set when using reorder.")
-
-    if order:
-        try:
-            order = order.split(",")
-            order = [int(num) for num in order]
-        except ValueError as e:
-            raise click.BadParameter("order must be a list of integers representing indexes in PDF.")
-
-    _reorder(file=file, order=order, reverse=reverse, out=out)
+    _reorder(file=file,
+             order=order,
+             reverse=reverse,
+             out=out)
 
 
 @cli.command()
@@ -103,7 +97,28 @@ def delete(file, delete_indexes, out):
               help="The path of the output pdf. defaults to out2.pdf")
 def split(file, split_index, out_first, out_second):
     '''Split a file at a particular index'''
-    _split(file=file, index=split_index, out_first=out_first, out_second=out_second)
+    _split(file=file,
+           index=split_index,
+           out_first=out_first,
+           out_second=out_second)
+
+
+@cli.command()
+@click.argument('file',
+                nargs=1,
+                type=click.Path(exists=True))
+@click.argument('direction',
+                nargs=1,
+                type=click.Choice(['clockwise', 'counter-clockwise']))
+@click.option('-o', '--out',
+              default='out.pdf',
+              type=click.Path(),
+              help="The path of the output pdf. defaults to out.pdf")
+def rotate(file, direction, out):
+    _rotate(file=file,
+            direction=direction,
+            out=out)
+
 
 
 # HELPER FUNCTIONS
@@ -130,6 +145,15 @@ def _reorder(*args, **kwargs):
     order = kwargs['order']
     out = kwargs['out']
 
+    if not reverse and not order:
+        raise click.UsageError("Either the reverse or out switch must be set when using reorder.")
+
+    if order:
+        try:
+            order = order.split(",")
+            order = [int(num) for num in order]
+        except ValueError as e:
+            raise click.BadParameter("order must be a list of integers representing indexes in PDF.")
 
     with open(file_arg, 'rb') as pdf_fp, open(out, 'wb') as pdf_fp_w:
         try:
@@ -196,7 +220,7 @@ def _split(*args, **kwargs):
         try:
             pdf_reader = PyPDF2.PdfFileReader(pdf_reader_fp)
         except PyPDF2.utils.PdfReadError as e:
-            raise click.BadParameter("PDF File could not be recognized %s." % (file_arg))
+            raise click.BadParameter("PDF File could not be recognized %s." % file_arg)
 
         pdf_writer_one = PyPDF2.PdfFileWriter()
         pdf_writer_two = PyPDF2.PdfFileWriter()
@@ -213,8 +237,32 @@ def _split(*args, **kwargs):
                 pdf_writer_two.addPage(pdf_reader.getPage(i))
             pdf_writer_one.write(pdf_fp_one)
             pdf_writer_two.write(pdf_fp_two)
-
         click.echo("Split %s at index %s into %s and %s" % (file_arg, split_index, out_first, out_second))
+
+
+def _rotate(*args, **kwargs):
+    file_arg = kwargs['file']
+    direction = kwargs['direction']
+    out = kwargs['out']
+    with open(file_arg, 'rb') as pdf_reader_fp, open(out, 'wb') as pdf_writer_fp:
+        try:
+            pdf_reader = PyPDF2.PdfFileReader(pdf_reader_fp)
+        except PyPDF2.utils.PdfReadError as e:
+            raise click.BadParameter("PDF File could not be recognized %s." % file_arg)
+
+        pdf_writer = PyPDF2.PdfFileWriter()
+        num_pages = pdf_reader.getNumPages()
+
+        for i in range(num_pages):
+            page = pdf_reader.getPage(i)
+            if direction == "clockwise":
+                page = page.rotateClockwise(90)
+            else:
+                page = page.rotateCounterClockwise(90)
+            pdf_writer.addPage(page)
+        pdf_writer.write(pdf_writer_fp)
+        click.echo("Pages were rotated %s successfully and saved at %s" % (direction, out))
+
 
 
 if __name__ == '__main__':
