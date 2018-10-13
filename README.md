@@ -60,6 +60,17 @@ Split test_files/MultiPagePDF.pdf at index 1 into out1.pdf and out2.pdf
 >>> ls
 ```
 
+### Rotating
+```bash
+# Clockwise Rotation
+>>> pdfcli rotate test_files/MultiPagePDF.pdf clockwise
+Pages were rotated clockwise successfully and saved at out.pdf
+ 
+# Counter-Clockwise Rotation
+>>> pdfcli rotate test_files/MultiPagePDF.pdf counter-clockwise
+Pages were rotated counter-clockwise successfully and saved at out.pdf
+```
+
 
 ### Getting Help
 
@@ -78,7 +89,6 @@ Commands:
   merge    Merge a set of PDF files together For example if you want to...
   reorder  Change a PDF pages order For example if you have three pages and...
   split    Split a file at a particular index
-
 ```
 
 #### Subcommmand Help
@@ -97,6 +107,5 @@ Usage: pdfcli merge [OPTIONS] [FILES]...
 Options:
   -o, --out PATH  The path of the output pdf. defaults to out.pdf
   --help          Show this message and exit.
-
 ```
 
