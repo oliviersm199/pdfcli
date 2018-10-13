@@ -10,6 +10,7 @@ click = "==7.0"
 [dev-packages]
 coverage = "*"
 twine = "*"
+sphinx = "*"
 
 [requires]
 python_version = "3.6"
