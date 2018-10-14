@@ -1,4 +1,4 @@
-https://travis-ci.com/oliviersm199/pdfcli.svg?branch=master
+[![Build Status](https://travis-ci.com/oliviersm199/pdfcli.svg?branch=master)](https://travis-ci.com/oliviersm199/pdfcli)
 
 # pdfcli
 
