@@ -17,7 +17,7 @@ pip install pdfcli
 ```
 
 ## Documentation
-[Docs are hosted on Github Pages](https://www.github.com/oliviersm199/pdfcli/docs)
+[Docs are hosted on Github Pages](https://oliviersm199.github.io/pdfcli)
 
 ## Contributing
 If you have any questions, feel free to [open an Issue on Github.](https://github.com/oliviersm199/pdfcli/issues) 
