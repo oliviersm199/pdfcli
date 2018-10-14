@@ -1,3 +1,5 @@
+https://travis-ci.com/oliviersm199/pdfcli.svg?branch=master
+
 # pdfcli
 
 A simple tool for pdfs. Stop using sketchy sites or expensive programs. Accomplish common PDF operations with the 
