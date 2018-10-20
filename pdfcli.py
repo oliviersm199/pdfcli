@@ -1,6 +1,4 @@
-import os
-import random
-import string
+import sys
 import click
 import PyPDF2
 
@@ -305,7 +303,7 @@ def _rotate(*args, **kwargs):
 def _encrypt(*args, **kwargs):
     file_arg = kwargs['file']
     out = kwargs['out']
-    encrypt_key = kwargs['key']
+    encrypt_key = _encr_key_encoding(kwargs['key'])
 
     with open(file_arg, 'rb') as pdf_reader_fp, open(out, 'wb') as pdf_writer_fp:
         try:
@@ -323,7 +321,7 @@ def _encrypt(*args, **kwargs):
 def _decrypt(*args, **kwargs):
     file_arg = kwargs['file']
     out = kwargs['out']
-    encrypt_key = kwargs['key']
+    encrypt_key = _encr_key_encoding(kwargs['key'])
 
     with open(file_arg, 'rb') as pdf_reader_fp, open(out, 'wb') as pdf_writer_fp:
         try:
@@ -336,6 +334,18 @@ def _decrypt(*args, **kwargs):
         pdf_writer.appendPagesFromReader(pdf_reader)
         pdf_writer.write(pdf_writer_fp)
         click.echo("PDF was successfully decrypted and saved at %s" % out)
+
+
+def _encr_key_encoding(key):
+    '''
+    Passes the proper key encoding in Python 2 versus
+    Python 3 due to a bug in pyPDF2 library.
+    '''
+    if int(sys.version[0]) == 3:
+        return key
+    else:
+        return key.encode('utf-8')
+
 
 
 if __name__ == '__main__':
