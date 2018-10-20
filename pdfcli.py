@@ -1,3 +1,6 @@
+import os
+import random
+import string
 import click
 import PyPDF2
 
@@ -70,7 +73,9 @@ def delete(file, delete_indexes, out):
     else:
         raise click.BadParameter("must specify indexes to delete.")
 
-    _delete(file=file, out=out, delete=delete_indexes)
+    _delete(file=file,
+            delete=delete_indexes,
+            out=out)
 
 
 @cli.command()
@@ -117,8 +122,47 @@ def rotate(file, direction, out):
             out=out)
 
 
+@cli.command()
+@click.argument('file',
+                nargs=1,
+                type=click.Path(exists=True))
+@click.option('-o', '--out',
+              default='out.pdf',
+              type=click.Path(),
+              help="The path of the output pdf. defaults to out.pdf")
+@click.option('-k', '--key',
+              prompt=True,
+              hide_input=True,
+              confirmation_prompt=True,
+              envvar='PDFCLI_KEY',
+              help="Password to encrypt pdf with. Can also be specified as environment variable PDFCLI_KEY")
+def encrypt(file, key, out):
+    '''
+    Encrypts a PDF file given a key.
+    '''
+    _encrypt(file=file, key=key, out=out)
 
-# HELPER FUNCTIONS
+
+@cli.command()
+@click.argument('file',
+                nargs=1,
+                type=click.Path(exists=True))
+@click.option('-k', '--key',
+              prompt=True,
+              hide_input=True,
+              confirmation_prompt=True,
+              envvar='PDFCLI_KEY',
+              help="Password to decrypt PDF with. Can also be specified as environment variable PDFCLI_KEY")
+@click.option('-o', '--out',
+              default='out.pdf',
+              type=click.Path(),
+              help="The path of the output pdf. defaults to out.pdf")
+def decrypt(file, key, out):
+    '''
+    Decrypts a PDF file given a key.
+    '''
+    _decrypt(file=file, key=key, out=out)
+
 
 def _merge(*files, **kwargs):
     if len(files) == 0:
@@ -133,7 +177,7 @@ def _merge(*files, **kwargs):
                 raise click.BadParameter("PDF File could not be recognized %s." % (file))
 
     merger.write(kwargs['out'])
-    click.echo("Merged files %s into %s"%(files, kwargs['out']))
+    click.echo("Merged files %s into %s" % (files, kwargs['out']))
 
 
 def _reorder(*args, **kwargs):
@@ -161,7 +205,6 @@ def _reorder(*args, **kwargs):
         pdf_writer = PyPDF2.PdfFileWriter()
         num_pages = pdf_reader.getNumPages()
 
-
         if order:
             for index in order:
                 if index > num_pages - 1:
@@ -173,9 +216,8 @@ def _reorder(*args, **kwargs):
         for index in order:
             pdf_writer.addPage(pdf_reader.getPage(index))
 
-
         pdf_writer.write(pdf_fp_w)
-        click.echo("Reordered pages in %s and rewrote file to %s"%(file_arg, out))
+        click.echo("Reordered pages in %s and rewrote file to %s" % (file_arg, out))
 
 
 def _delete(*args, **kwargs):
@@ -200,9 +242,8 @@ def _delete(*args, **kwargs):
                 if i not in delete_pages:
                     pdf_writer.addPage(pdf_reader.getPage(i))
 
-
             pdf_writer.write(pdf_writer_fp)
-            click.echo("Deleted pages %s from %s and created new PDF at %s"%(delete_pages, file_arg, out))
+            click.echo("Deleted pages %s from %s and created new PDF at %s" % (delete_pages, file_arg, out))
 
 
 def _split(*args, **kwargs):
@@ -259,6 +300,42 @@ def _rotate(*args, **kwargs):
             pdf_writer.addPage(page)
         pdf_writer.write(pdf_writer_fp)
         click.echo("Pages were rotated %s successfully and saved at %s" % (direction, out))
+
+
+def _encrypt(*args, **kwargs):
+    file_arg = kwargs['file']
+    out = kwargs['out']
+    encrypt_key = kwargs['key']
+
+    with open(file_arg, 'rb') as pdf_reader_fp, open(out, 'wb') as pdf_writer_fp:
+        try:
+            pdf_reader = PyPDF2.PdfFileReader(pdf_reader_fp)
+        except PyPDF2.utils.PdfReadError as e:
+            raise click.BadParameter("PDF File could not be recognized %s." % file_arg)
+
+        pdf_writer = PyPDF2.PdfFileWriter()
+        pdf_writer.appendPagesFromReader(pdf_reader)
+        pdf_writer.encrypt(encrypt_key)
+        pdf_writer.write(pdf_writer_fp)
+        click.echo("PDF was successfully encrypted and saved at %s" % out)
+
+
+def _decrypt(*args, **kwargs):
+    file_arg = kwargs['file']
+    out = kwargs['out']
+    encrypt_key = kwargs['key']
+
+    with open(file_arg, 'rb') as pdf_reader_fp, open(out, 'wb') as pdf_writer_fp:
+        try:
+            pdf_reader = PyPDF2.PdfFileReader(pdf_reader_fp)
+        except PyPDF2.utils.PdfReadError as e:
+            raise click.BadParameter("PDF FILE could not be recognized %s." % file_arg)
+
+        pdf_writer = PyPDF2.PdfFileWriter()
+        pdf_reader.decrypt(encrypt_key)
+        pdf_writer.appendPagesFromReader(pdf_reader)
+        pdf_writer.write(pdf_writer_fp)
+        click.echo("PDF was successfully decrypted and saved at %s" % out)
 
 
 if __name__ == '__main__':

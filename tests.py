@@ -23,6 +23,9 @@ class BasePDFCLITestCase(unittest.TestCase):
         if os.path.exists('test_files/out.pdf'):
             os.remove('test_files/out.pdf')
 
+        if os.path.exists('out.pdf'):
+            os.remove('out.pdf')
+
         if os.path.exists('out1.pdf'):
             os.remove('out1.pdf')
 
@@ -202,6 +205,40 @@ class TestRotate(BasePDFCLITestCase):
     def test_rotate_bad_file(self):
         result = self.runner.invoke(cli, ['rotate', 'test_files.test.txt', 'clockwise'])
         self.assertEqual(result.exit_code, 2)
+
+class TestEncryptDecrypt(BasePDFCLITestCase):
+    def test_encrypt(self):
+        result = self.runner.invoke(cli, ['encrypt', 'test_files/MultiPagePDF.pdf', '--key', "test_key"])
+        self.assertEqual(result.exit_code, 0)
+        self.assertTrue(os.path.exists('out.pdf'))
+        with self.assertRaises(PyPDF2.utils.PdfReadError), open('out.pdf', 'rb') as reader_fp:
+            pdf_reader = PyPDF2.PdfFileReader(reader_fp)
+            pdf_reader.getNumPages()
+
+    def test_decrypt(self):
+        result = self.runner.invoke(cli, ['encrypt', 'test_files/MultiPagePDF.pdf', '--key', "test_key"])
+        self.assertEqual(result.exit_code, 0)
+        self.assertTrue(os.path.exists('out.pdf'))
+
+        result = self.runner.invoke(cli, ['decrypt', 'out.pdf', '--out', 'out2.pdf', '--key', "test_key"])
+        self.assertEqual(result.exit_code, 0)
+        self.assertTrue(os.path.exists('out2.pdf'))
+
+        with open('out2.pdf', 'rb') as reader_fp:
+            pdf_reader = PyPDF2.PdfFileReader(reader_fp)
+            self.assertEqual(pdf_reader.getNumPages(), 3)
+
+        # Cleanup
+        os.remove("out2.pdf")
+
+    def test_decrypt_bad_file(self):
+        result = self.runner.invoke(cli, ['encrypt', 'test_files/test.txt', '--key', "test_key"])
+        self.assertEqual(result.exit_code, 2)
+
+    def test_encrypt_bad_file(self):
+        result = self.runner.invoke(cli, ['decrypt', 'test_files/test.txt', '--key', "test_key"])
+        self.assertEqual(result.exit_code, 2)
+
 
 
 

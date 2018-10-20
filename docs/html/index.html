@@ -90,6 +90,22 @@ Pages were rotated counter-clockwise successfully and saved at out.pdf
 </pre></div>
 </div>
 </div>
+<div class="section" id="encrypting">
+<h2>Encrypting<a class="headerlink" href="#encrypting" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Can specify encryption key as option or environment variable PDFCLI_KEY</span>
+&gt;&gt;&gt; pdfcli encrypt test.pdf --key<span class="o">=</span>oli123 --out encrypted.pdf
+PDF was successfully encrypted and saved at encrypted.pdf
+</pre></div>
+</div>
+</div>
+<div class="section" id="decrypting">
+<h2>Decrypting<a class="headerlink" href="#decrypting" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Can specify decryption key as option or environment variable PDFCLI_KEY</span>
+&gt;&gt;&gt; pdfcli decrypt test.pdf --key<span class="o">=</span>oli123 --out decrypted.pdf
+PDF was successfully decrypted and saved at decrypted.pdf
+</pre></div>
+</div>
+</div>
 <div class="section" id="help">
 <h2>Help<a class="headerlink" href="#help" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; pdfcli --help
@@ -99,7 +115,9 @@ Options:
   --help  Show this message and exit.
 
 Commands:
+  decrypt  Decrypts a PDF file given a key.
   delete   Delete pages in a PDF.
+  encrypt  Encrypts a PDF file given a key.
   merge    Merge a <span class="nb">set</span> of PDF files together.
   reorder  Reorder the pages in a PDF.
   rotate   Rotate a PDF file clockwise or counter-clockwise.
