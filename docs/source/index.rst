@@ -103,6 +103,23 @@ Decrypting
    PDF was successfully decrypted and saved at decrypted.pdf
 
 *************
+Info
+*************
+
+.. code-block:: bash
+
+   # Can retrieve metadata about PDF
+   >>> pdfcli info test_files/PDF1.pdf
+   Title: Microsoft Word - Document1
+   Producer: Mac OS X 10.12.6 Quartz PDFContext
+   Creator: Word
+   CreationDate: D:20180930133024Z00'00'
+   ModDate: D:20180930133024Z00'00'
+   Keywords:
+   AAPL:Keywords: []
+
+
+*************
 Help
 *************
 

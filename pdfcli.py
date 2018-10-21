@@ -182,6 +182,20 @@ def decrypt(file, out, key):
     _decrypt(file=file, out=out, key=key)
 
 
+@cli.command()
+@click.argument('file',
+                nargs=1,
+                type=click.Path(exists=True))
+@click.option('-k', '--key',
+              envvar='PDFCLI_KEY',
+              help="Password to decrypt PDF with. Can also be specified as environment variable PDFCLI_KEY")
+def info(file, key):
+    '''
+    Retrieves metadata info from PDF file.
+    '''
+    _info(file=file, key=key)
+
+
 def _merge(*files, **kwargs):
     decrypt_key = _encr_key_encoding(kwargs['key'])
 
@@ -341,15 +355,31 @@ def _decrypt(*args, **kwargs):
         click.echo("PDF was successfully decrypted and saved at %s" % out)
 
 
+def _info(*args, **kwargs):
+    file_arg = kwargs['file']
+    decrypt_key = _encr_key_encoding(kwargs['key'])
+    with open(file_arg, 'rb') as pdf_reader_fp:
+        pdf_reader = get_pdf_reader(pdf_reader_fp, file_arg, key=decrypt_key)
+        document_info = pdf_reader.getDocumentInfo()
+        for key in document_info.keys():
+            value = str(document_info[key])
+            click.echo("%s: %s" % (_strip_forward_slash(key), value))
+
+
 def _encr_key_encoding(key):
     '''
     Passes the proper key encoding in Python 2 versus
     Python 3 due to a bug in pyPDF2 library.
     '''
-    if int(sys.version[0]) == 3:
+    if not key:
+        return None
+    elif int(sys.version[0]) == 3:
         return key
     else:
         return key.encode('utf-8')
+
+def _strip_forward_slash(key):
+    return key.strip('/')
 
 
 def get_pdf_reader(pdf_fp, file_arg, key=None):
@@ -360,6 +390,7 @@ def get_pdf_reader(pdf_fp, file_arg, key=None):
         return pdf_reader
     except PyPDF2.utils.PdfReadError as e:
         raise click.BadParameter("PDF File could not be recognized %s." % (file_arg))
+
 
 if __name__ == '__main__':
     cli()
