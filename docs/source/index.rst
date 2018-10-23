@@ -83,6 +83,43 @@ Rotating
 
 
 *************
+Encrypting
+*************
+
+.. code-block:: bash
+
+   # Can specify encryption key as option or environment variable PDFCLI_KEY
+   >>> pdfcli encrypt test.pdf --key=oli123 --out encrypted.pdf
+   PDF was successfully encrypted and saved at encrypted.pdf
+
+*************
+Decrypting
+*************
+
+.. code-block:: bash
+
+   # Can specify decryption key as option or environment variable PDFCLI_KEY
+   >>> pdfcli decrypt test.pdf --key=oli123 --out decrypted.pdf
+   PDF was successfully decrypted and saved at decrypted.pdf
+
+*************
+Info
+*************
+
+.. code-block:: bash
+
+   # Can retrieve metadata about PDF
+   >>> pdfcli info test_files/PDF1.pdf
+   Title: Microsoft Word - Document1
+   Producer: Mac OS X 10.12.6 Quartz PDFContext
+   Creator: Word
+   CreationDate: D:20180930133024Z00'00'
+   ModDate: D:20180930133024Z00'00'
+   Keywords:
+   AAPL:Keywords: []
+
+
+*************
 Help
 *************
 
@@ -96,10 +133,10 @@ Help
      --help  Show this message and exit.
 
    Commands:
+     decrypt  Decrypts a PDF file given a key.
      delete   Delete pages in a PDF.
+     encrypt  Encrypts a PDF file given a key.
      merge    Merge a set of PDF files together.
      reorder  Reorder the pages in a PDF.
      rotate   Rotate a PDF file clockwise or counter-clockwise.
      split    Split a PDF file into two.
-
-

@@ -23,6 +23,9 @@ class BasePDFCLITestCase(unittest.TestCase):
         if os.path.exists('test_files/out.pdf'):
             os.remove('test_files/out.pdf')
 
+        if os.path.exists('out.pdf'):
+            os.remove('out.pdf')
+
         if os.path.exists('out1.pdf'):
             os.remove('out1.pdf')
 
@@ -100,12 +103,12 @@ class TestReorder(BasePDFCLITestCase):
 
     def test_reorder_valid_input_order_indexes_out_of_range(self):
         result = self.runner.invoke(cli, ['reorder', 'test_files/MultiPagePDF.pdf', '--out',
-                                          'test_files/out.pdf', '--order','2,1,0,4,5,6'])
+                                          'test_files/out.pdf', '--order', '2,1,0,4,5,6'])
         self.assertEqual(result.exit_code, 2)
 
     def test_reorder_valid_input_indexes_duplicated(self):
         result = self.runner.invoke(cli, ['reorder', 'test_files/MultiPagePDF.pdf', '--out',
-                                          'test_files/out.pdf', '--order','2,1,0,0,1,2'])
+                                          'test_files/out.pdf', '--order', '2,1,0,0,1,2'])
         self.assertEqual(result.exit_code, 0)
 
     def test_reorder_invalid_input_indexes_not_integers(self):
@@ -119,27 +122,29 @@ class TestReorder(BasePDFCLITestCase):
 
     def test_reorder_bad_file(self):
         result = self.runner.invoke(cli, ['reorder', 'test_files/test.txt', '--out',
-                                          'test_files/out.pdf', '--order','1,0,2'])
+                                          'test_files/out.pdf', '--order', '1,0,2'])
         self.assertEqual(result.exit_code, 2)
 
 
 class TestDelete(BasePDFCLITestCase):
     def test_delete_valid_input(self):
-        result = self.runner.invoke(cli, ['delete', 'test_files/MultiPagePDF.pdf','0','--out','test_files/out.pdf'])
+        result = self.runner.invoke(cli, ['delete', 'test_files/MultiPagePDF.pdf', '0', '--out', 'test_files/out.pdf'])
         self.assertEqual(result.exit_code, 0)
         with open('test_files/out.pdf', 'rb') as file_reader:
             pdf = PyPDF2.PdfFileReader(file_reader)
             self.assertEqual(pdf.getNumPages(), 2)
 
     def test_delete_valid_input_two_pages_removed(self):
-        result = self.runner.invoke(cli, ['delete', 'test_files/MultiPagePDF.pdf', '0,1', '--out', 'test_files/out.pdf'])
+        result = self.runner.invoke(cli,
+                                    ['delete', 'test_files/MultiPagePDF.pdf', '0,1', '--out', 'test_files/out.pdf'])
         self.assertEqual(result.exit_code, 0)
         with open('test_files/out.pdf', 'rb') as file_reader:
             pdf = PyPDF2.PdfFileReader(file_reader)
             self.assertEqual(pdf.getNumPages(), 1)
 
     def test_out_of_index_delete(self):
-        result = self.runner.invoke(cli, ['delete', 'test_files/MultiPagePDF.pdf', '0,5', '--out', 'test_files/out.pdf'])
+        result = self.runner.invoke(cli,
+                                    ['delete', 'test_files/MultiPagePDF.pdf', '0,5', '--out', 'test_files/out.pdf'])
         self.assertEqual(result.exit_code, 2)
 
     def test_no_input_delete(self):
@@ -147,7 +152,8 @@ class TestDelete(BasePDFCLITestCase):
         self.assertEqual(result.exit_code, 2)
 
     def test_same_index_specified_twice(self):
-        result = self.runner.invoke(cli, ['delete', 'test_files/MultiPagePDF.pdf', '0,0,0,1','--out', 'test_files/out.pdf'])
+        result = self.runner.invoke(cli,
+                                    ['delete', 'test_files/MultiPagePDF.pdf', '0,0,0,1', '--out', 'test_files/out.pdf'])
         self.assertEqual(result.exit_code, 0)
         with open('test_files/out.pdf', 'rb') as file_reader:
             pdf = PyPDF2.PdfFileReader(file_reader)
@@ -158,7 +164,8 @@ class TestDelete(BasePDFCLITestCase):
         self.assertEqual(result.exit_code, 2)
 
     def test_delete_invalid_indexes(self):
-        result = self.runner.invoke(cli, ['delete', 'test_files/MultiPagePDF.pdf', 'asdfasd,asdfasf', '--out', 'test_files/out.pdf'])
+        result = self.runner.invoke(cli, ['delete', 'test_files/MultiPagePDF.pdf', 'asdfasd,asdfasf', '--out',
+                                          'test_files/out.pdf'])
         self.assertEqual(result.exit_code, 2)
 
 
@@ -177,7 +184,6 @@ class TestSplit(BasePDFCLITestCase):
     def test_split_not_integer_split(self):
         result = self.runner.invoke(cli, ['split', 'test_files/MultiPagePDF.pdf', 'asdfasdf'])
         self.assertEqual(result.exit_code, 2)
-
 
     def test_split_not_in_range_integer(self):
         result = self.runner.invoke(cli, ['split', 'test_files/MultiPagePDF.pdf', '10'])
@@ -204,25 +210,44 @@ class TestRotate(BasePDFCLITestCase):
         self.assertEqual(result.exit_code, 2)
 
 
+class TestEncryptDecrypt(BasePDFCLITestCase):
+    def test_encrypt(self):
+        result = self.runner.invoke(cli, ['encrypt', 'test_files/MultiPagePDF.pdf', '--key', "test_key"])
+        self.assertEqual(result.exit_code, 0)
+        self.assertTrue(os.path.exists('out.pdf'))
+        with self.assertRaises(PyPDF2.utils.PdfReadError), open('out.pdf', 'rb') as reader_fp:
+            pdf_reader = PyPDF2.PdfFileReader(reader_fp)
+            pdf_reader.getNumPages()
+
+    def test_decrypt(self):
+        result = self.runner.invoke(cli, ['encrypt', 'test_files/MultiPagePDF.pdf', '--key', "test_key"])
+        self.assertEqual(result.exit_code, 0)
+        self.assertTrue(os.path.exists('out.pdf'))
+
+        result = self.runner.invoke(cli, ['decrypt', 'out.pdf', '--out', 'out2.pdf', '--key', "test_key"])
+        self.assertEqual(result.exit_code, 0)
+        self.assertTrue(os.path.exists('out2.pdf'))
+
+        with open('out2.pdf', 'rb') as reader_fp:
+            pdf_reader = PyPDF2.PdfFileReader(reader_fp)
+            self.assertEqual(pdf_reader.getNumPages(), 3)
+
+        # Cleanup
+        os.remove("out2.pdf")
+
+    def test_decrypt_bad_file(self):
+        result = self.runner.invoke(cli, ['encrypt', 'test_files/test.txt', '--key', "test_key"])
+        self.assertEqual(result.exit_code, 2)
+
+    def test_encrypt_bad_file(self):
+        result = self.runner.invoke(cli, ['decrypt', 'test_files/test.txt', '--key', "test_key"])
+        self.assertEqual(result.exit_code, 2)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+class TestInfo(BasePDFCLITestCase):
+    def test_info(self):
+        result = self.runner.invoke(cli, ['info', 'test_files/MultiPagePDF.pdf'])
+        self.assertEqual(result.exit_code, 0)
 
 
 if __name__ == '__main__':
