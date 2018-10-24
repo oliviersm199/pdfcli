@@ -10,6 +10,8 @@ convenience of the command line. Supported operations include:
 * Splitting
 * Rotating
 * Reordering
+* Getting Metadata Info
+* Encryption and Decryption
 
 
 ## Installation
