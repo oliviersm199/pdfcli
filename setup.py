@@ -16,7 +16,7 @@ DESCRIPTION = 'Simplify manipulating PDFs'
 URL = 'https://github.com/oliviersm199/pdfcli'
 EMAIL = 'olivier.morissette@gmail.com'
 AUTHOR = 'Olivier Simard-Morissette'
-REQUIRES_PYTHON = '>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*'
+REQUIRES_PYTHON = '!=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*'
 VERSION = '0.0.5'
 LICENSE = 'MIT'
 
