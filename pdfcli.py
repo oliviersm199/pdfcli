@@ -23,9 +23,19 @@ def merge(files, out, key):
     '''
     Merge a set of PDF files together.
     '''
-    _merge(*files,
-           out=out,
-           key=key)
+    decrypt_key = _encr_key_encoding(key)
+
+    if len(files) == 0:
+        raise click.BadParameter('There were no files provided to merge')
+
+    merger = PyPDF2.merger.PdfFileMerger()
+    for file in files:
+        with open(file, 'rb') as fp:
+            pdf_reader = get_pdf_reader(fp, file, key=decrypt_key)
+            merger.append(pdf_reader)
+
+    merger.write(kwargs['out'])
+    click.echo("Merged files %s into %s" % (files, kwargs['out']))
 
 
 @cli.command()
@@ -49,175 +59,8 @@ def reorder(file, order, reverse, out, key):
     '''
     Reorder the pages in a PDF.
     '''
-    _reorder(file=file,
-             order=order,
-             reverse=reverse,
-             out=out,
-             key=key)
-
-
-@cli.command()
-@click.argument('file',
-                nargs=1,
-                type=click.Path(exists=True))
-@click.argument('delete-indexes',
-                type=click.STRING)
-@click.option('-o', '--out',
-              default='out.pdf',
-              type=click.Path(),
-              help="The path of the output pdf. defaults to out.pdf")
-@click.option('-k', '--key',
-              envvar='PDFCLI_KEY',
-              help="Password to decrypt PDF with. Can also be specified as environment variable PDFCLI_KEY")
-def delete(file, delete_indexes, out, key):
-    '''
-    Delete pages in a PDF.
-    '''
-    if delete_indexes:
-        try:
-            delete_indexes = delete_indexes.split(",")
-            delete_indexes = [int(num) for num in delete_indexes]
-        except ValueError as e:
-            raise click.BadParameter("delete indexes must be a list of integers representing indexes in PDF.")
-    else:
-        raise click.BadParameter("must specify indexes to delete.")
-
-    _delete(file=file,
-            delete=delete_indexes,
-            out=out,
-            key=key)
-
-
-@cli.command()
-@click.argument('file',
-                nargs=1,
-                type=click.Path(exists=True))
-@click.argument('split-index',
-                nargs=1,
-                default=0,
-                type=click.INT)
-@click.option('--out-first',
-              default='out1.pdf',
-              type=click.Path(),
-              help="The path of the output pdf. defaults to out1.pdf")
-@click.option('-k', '--key',
-              envvar='PDFCLI_KEY',
-              help="Password to decrypt PDF with. Can also be specified as environment variable PDFCLI_KEY")
-@click.option('--out-second',
-              default='out2.pdf',
-              type=click.Path(),
-              help="The path of the output pdf. defaults to out2.pdf")
-def split(file, split_index, out_first, out_second, key):
-    '''Split a PDF file into two.'''
-    _split(file=file,
-           index=split_index,
-           out_first=out_first,
-           out_second=out_second,
-           key=key)
-
-
-@cli.command()
-@click.argument('file',
-                nargs=1,
-                type=click.Path(exists=True))
-@click.argument('direction',
-                nargs=1,
-                type=click.Choice(['clockwise', 'counter-clockwise']))
-@click.option('-k', '--key',
-              envvar='PDFCLI_KEY',
-              help="Password to decrypt PDF with. Can also be specified as environment variable PDFCLI_KEY")
-@click.option('-o', '--out',
-              default='out.pdf',
-              type=click.Path(),
-              help="The path of the output pdf. defaults to out.pdf")
-def rotate(file, direction, out, key):
-    '''
-    Rotate a PDF file clockwise or counter-clockwise.
-    '''
-    _rotate(file=file,
-            direction=direction,
-            out=out,
-            key=key)
-
-
-@cli.command()
-@click.argument('file',
-                nargs=1,
-                type=click.Path(exists=True))
-@click.option('-o', '--out',
-              default='out.pdf',
-              type=click.Path(),
-              help="The path of the output pdf. defaults to out.pdf")
-@click.option('-k', '--key',
-              prompt=True,
-              hide_input=True,
-              confirmation_prompt=True,
-              envvar='PDFCLI_KEY',
-              help="Password to encrypt pdf with. Can also be specified as environment variable PDFCLI_KEY")
-def encrypt(file, out, key):
-    '''
-    Encrypts a PDF file given a key.
-    '''
-    _encrypt(file=file, out=out, key=key)
-
-
-@cli.command()
-@click.argument('file',
-                nargs=1,
-                type=click.Path(exists=True))
-@click.option('-k', '--key',
-              prompt=True,
-              hide_input=True,
-              confirmation_prompt=True,
-              envvar='PDFCLI_KEY',
-              help="Password to decrypt PDF with. Can also be specified as environment variable PDFCLI_KEY")
-@click.option('-o', '--out',
-              default='out.pdf',
-              type=click.Path(),
-              help="The path of the output pdf. defaults to out.pdf")
-def decrypt(file, out, key):
-    '''
-    Decrypts a PDF file given a key.
-    '''
-    _decrypt(file=file, out=out, key=key)
-
-
-@cli.command()
-@click.argument('file',
-                nargs=1,
-                type=click.Path(exists=True))
-@click.option('-k', '--key',
-              envvar='PDFCLI_KEY',
-              help="Password to decrypt PDF with. Can also be specified as environment variable PDFCLI_KEY")
-def info(file, key):
-    '''
-    Retrieves metadata info from PDF file.
-    '''
-    _info(file=file, key=key)
-
-
-def _merge(*files, **kwargs):
-    decrypt_key = _encr_key_encoding(kwargs['key'])
-
-    if len(files) == 0:
-        raise click.BadParameter('There were no files provided to merge')
-
-    merger = PyPDF2.merger.PdfFileMerger()
-    for file in files:
-        with open(file, 'rb') as fp:
-            pdf_reader = get_pdf_reader(fp, file, key=decrypt_key)
-            merger.append(pdf_reader)
-
-    merger.write(kwargs['out'])
-    click.echo("Merged files %s into %s" % (files, kwargs['out']))
-
-
-def _reorder(*args, **kwargs):
-    file_arg = kwargs['file']
-    reverse = kwargs['reverse']
-    order = kwargs['order']
-    out = kwargs['out']
-    decrypt_key = _encr_key_encoding(kwargs['key'])
+    file_arg = file
+    decrypt_key = _encr_key_encoding(key)
 
     if not reverse and not order:
         raise click.UsageError("Either the reverse or out switch must be set when using reorder.")
@@ -250,11 +93,26 @@ def _reorder(*args, **kwargs):
         click.echo("Reordered pages in %s and rewrote file to %s" % (file_arg, out))
 
 
-def _delete(*args, **kwargs):
-    file_arg = kwargs['file']
-    delete_pages = kwargs['delete']
-    out = kwargs['out']
-    decrypt_key = _encr_key_encoding(kwargs['key'])
+@cli.command()
+@click.argument('file',
+                nargs=1,
+                type=click.Path(exists=True))
+@click.argument('delete-indexes',
+                type=click.STRING)
+@click.option('-o', '--out',
+              default='out.pdf',
+              type=click.Path(),
+              help="The path of the output pdf. defaults to out.pdf")
+@click.option('-k', '--key',
+              envvar='PDFCLI_KEY',
+              help="Password to decrypt PDF with. Can also be specified as environment variable PDFCLI_KEY")
+def delete(file, delete_indexes, out, key):
+    '''
+    Delete pages in a PDF.
+    '''
+    file_arg = file
+    delete_pages = delete
+    decrypt_key = _encr_key_encoding(key)
 
     with open(file_arg, 'rb') as pdf_reader_fp:
         pdf_reader = get_pdf_reader(pdf_reader_fp, file_arg, key=decrypt_key)
@@ -274,12 +132,29 @@ def _delete(*args, **kwargs):
             click.echo("Deleted pages %s from %s and created new PDF at %s" % (delete_pages, file_arg, out))
 
 
-def _split(*args, **kwargs):
-    file_arg = kwargs['file']
-    split_index = kwargs['index']
-    out_first = kwargs['out_first']
-    out_second = kwargs['out_second']
-    decrypt_key = _encr_key_encoding(kwargs['key'])
+@cli.command()
+@click.argument('file',
+                nargs=1,
+                type=click.Path(exists=True))
+@click.argument('split-index',
+                nargs=1,
+                default=0,
+                type=click.INT)
+@click.option('--out-first',
+              default='out1.pdf',
+              type=click.Path(),
+              help="The path of the output pdf. defaults to out1.pdf")
+@click.option('-k', '--key',
+              envvar='PDFCLI_KEY',
+              help="Password to decrypt PDF with. Can also be specified as environment variable PDFCLI_KEY")
+@click.option('--out-second',
+              default='out2.pdf',
+              type=click.Path(),
+              help="The path of the output pdf. defaults to out2.pdf")
+def split(file, split_index, out_first, out_second, key):
+    '''Split a PDF file into two.'''
+    split_index = index
+    decrypt_key = _encr_key_encoding(key)
 
     with open(file_arg, 'rb') as pdf_reader_fp, open(out_first, 'wb') as pdf_fp_one, \
             open(out_second, 'wb') as pdf_fp_two:
@@ -303,11 +178,26 @@ def _split(*args, **kwargs):
         click.echo("Split %s at index %s into %s and %s" % (file_arg, split_index, out_first, out_second))
 
 
-def _rotate(*args, **kwargs):
-    file_arg = kwargs['file']
-    direction = kwargs['direction']
-    out = kwargs['out']
-    decrypt_key = _encr_key_encoding(kwargs['key'])
+@cli.command()
+@click.argument('file',
+                nargs=1,
+                type=click.Path(exists=True))
+@click.argument('direction',
+                nargs=1,
+                type=click.Choice(['clockwise', 'counter-clockwise']))
+@click.option('-k', '--key',
+              envvar='PDFCLI_KEY',
+              help="Password to decrypt PDF with. Can also be specified as environment variable PDFCLI_KEY")
+@click.option('-o', '--out',
+              default='out.pdf',
+              type=click.Path(),
+              help="The path of the output pdf. defaults to out.pdf")
+def rotate(file, direction, out, key):
+    '''
+    Rotate a PDF file clockwise or counter-clockwise.
+    '''
+    file_arg = file
+    decrypt_key = _encr_key_encoding(key)
 
     with open(file_arg, 'rb') as pdf_reader_fp, open(out, 'wb') as pdf_writer_fp:
         pdf_reader = get_pdf_reader(pdf_reader_fp, file_arg, key=decrypt_key)
@@ -326,10 +216,26 @@ def _rotate(*args, **kwargs):
         click.echo("Pages were rotated %s successfully and saved at %s" % (direction, out))
 
 
-def _encrypt(*args, **kwargs):
-    file_arg = kwargs['file']
-    out = kwargs['out']
-    encrypt_key = _encr_key_encoding(kwargs['key'])
+@cli.command()
+@click.argument('file',
+                nargs=1,
+                type=click.Path(exists=True))
+@click.option('-o', '--out',
+              default='out.pdf',
+              type=click.Path(),
+              help="The path of the output pdf. defaults to out.pdf")
+@click.option('-k', '--key',
+              prompt=True,
+              hide_input=True,
+              confirmation_prompt=True,
+              envvar='PDFCLI_KEY',
+              help="Password to encrypt pdf with. Can also be specified as environment variable PDFCLI_KEY")
+def encrypt(file, out, key):
+    '''
+    Encrypts a PDF file given a key.
+    '''
+    file_arg = file
+    encrypt_key = _encr_key_encoding(key)
 
     with open(file_arg, 'rb') as pdf_reader_fp, open(out, 'wb') as pdf_writer_fp:
         pdf_reader = get_pdf_reader(pdf_reader_fp, file_arg)
@@ -338,13 +244,28 @@ def _encrypt(*args, **kwargs):
         pdf_writer.appendPagesFromReader(pdf_reader)
         pdf_writer.encrypt(encrypt_key)
         pdf_writer.write(pdf_writer_fp)
-        click.echo("PDF was successfully encrypted and saved at %s" % out)
+        click.echo("PDF was successfully encrypted and saved at %s" % out)    
 
-
-def _decrypt(*args, **kwargs):
-    file_arg = kwargs['file']
-    out = kwargs['out']
-    decrypt_key = _encr_key_encoding(kwargs['key'])
+@cli.command()
+@click.argument('file',
+                nargs=1,
+                type=click.Path(exists=True))
+@click.option('-k', '--key',
+              prompt=True,
+              hide_input=True,
+              confirmation_prompt=True,
+              envvar='PDFCLI_KEY',
+              help="Password to decrypt PDF with. Can also be specified as environment variable PDFCLI_KEY")
+@click.option('-o', '--out',
+              default='out.pdf',
+              type=click.Path(),
+              help="The path of the output pdf. defaults to out.pdf")
+def decrypt(file, out, key):
+    '''
+    Decrypts a PDF file given a key.
+    '''
+    file_arg = file
+    decrypt_key = _encr_key_encoding(key)
 
     with open(file_arg, 'rb') as pdf_reader_fp, open(out, 'wb') as pdf_writer_fp:
         pdf_reader = get_pdf_reader(pdf_reader_fp, file_arg, key=decrypt_key)
@@ -355,9 +276,19 @@ def _decrypt(*args, **kwargs):
         click.echo("PDF was successfully decrypted and saved at %s" % out)
 
 
-def _info(*args, **kwargs):
-    file_arg = kwargs['file']
-    decrypt_key = _encr_key_encoding(kwargs['key'])
+@cli.command()
+@click.argument('file',
+                nargs=1,
+                type=click.Path(exists=True))
+@click.option('-k', '--key',
+              envvar='PDFCLI_KEY',
+              help="Password to decrypt PDF with. Can also be specified as environment variable PDFCLI_KEY")
+def info(file, key):
+    '''
+    Retrieves metadata info from PDF file.
+    '''
+    file_arg = file
+    decrypt_key = _encr_key_encoding(key)
     with open(file_arg, 'rb') as pdf_reader_fp:
         pdf_reader = get_pdf_reader(pdf_reader_fp, file_arg, key=decrypt_key)
         document_info = pdf_reader.getDocumentInfo()
